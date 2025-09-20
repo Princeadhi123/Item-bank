@@ -10,6 +10,7 @@
   --warning: #f59e0b;
   --danger: #ef4444;
   --header-offset: 60px; /* will be updated by JS to match navbar height */
+  --toolbar-offset: 0px; /* will be updated by JS based on toolbar height */
 }
 
 :root[data-theme="light"] {
@@ -84,8 +85,9 @@ body {
 .pagesize select { padding: .3rem .4rem; border-radius: .4rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
 
 .table-wrap { position: relative; }
-.data-table { width: 100%; border-collapse: collapse; background: var(--bg-elev); border: 1px solid var(--border); border-radius: .6rem; overflow: hidden; }
-.data-table thead th { text-align: left; padding: .7rem .7rem; border-bottom: 1px solid var(--border); color: var(--muted); position: sticky; top: var(--header-offset); background: var(--bg-elev); cursor: pointer; z-index: 5; }
+.data-table { width: 100%; border-collapse: collapse; background: var(--bg-elev); border: 1px solid var(--border); border-radius: .6rem; overflow: visible; }
+.data-table thead { background: var(--bg-elev); }
+.data-table thead th { text-align: left; padding: .7rem .7rem; border-bottom: 1px solid var(--border); color: var(--muted); position: sticky; top: var(--header-offset); z-index: 10; background: var(--bg-elev); cursor: pointer; }
 .data-table tbody td { padding: .7rem .7rem; border-top: 1px solid var(--border); vertical-align: top; }
 .data-table tbody tr { transition: background .15s ease; }
 .data-table tbody tr:hover { background: color-mix(in hsl, var(--primary) 8%, transparent); }

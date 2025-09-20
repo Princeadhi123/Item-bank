@@ -30,15 +30,19 @@ function debounce(fn, delay = 300) {
 // Sync sticky offsets with the actual header height (Bootstrap navbar)
 function setupStickyOffsets() {
   const header = document.querySelector('.app-header');
+  const toolbar = document.querySelector('.main .toolbar');
   if (!header) return;
   const apply = () => {
     const h = Math.ceil(header.getBoundingClientRect().height);
     document.documentElement.style.setProperty('--header-offset', `${h}px`);
+    const t = toolbar ? Math.ceil(toolbar.getBoundingClientRect().height) : 0;
+    document.documentElement.style.setProperty('--toolbar-offset', `${t}px`);
   };
   apply();
   try {
     const ro = new ResizeObserver(apply);
     ro.observe(header);
+    if (toolbar) ro.observe(toolbar);
   } catch (_) {
     window.addEventListener('resize', debounce(apply, 100));
   }
