@@ -87,36 +87,49 @@ body {
 .pagesize select { padding: .3rem .4rem; border-radius: .4rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
 
 .table-wrap { position: relative; height: calc(100vh - 150px); overflow: auto; overflow-x: auto; scrollbar-gutter: stable both-edges; }
-.data-table { width: 100%; min-width: 1200px; border-collapse: collapse; background: var(--bg-elev); border: 1px solid var(--border); border-radius: .6rem; overflow: visible; table-layout: fixed; }
-.data-table thead { background: var(--bg-elev); }
-.data-table thead th { text-align: left; padding: .7rem .7rem; border-bottom: 1px solid var(--border); color: var(--muted); position: sticky; top: 0; z-index: 10; background: var(--bg-elev); cursor: pointer; }
-.data-table tbody td { padding: .7rem .7rem; border-top: 1px solid var(--border); vertical-align: top; }
+.data-table { width: 100%; min-width: 780px; border-collapse: collapse; background: var(--bg-elev); border: 1px solid var(--border); border-radius: .6rem; overflow: visible; table-layout: fixed; font-size: .9rem; }
+.data-table thead th { text-align: left; padding: .55rem .45rem; border-bottom: 1px solid var(--border); color: var(--muted); position: sticky; top: 0; z-index: 10; background: var(--bg-elev); cursor: pointer; white-space: normal !important; word-break: break-word; line-height: 1.2; font-size: .84rem; }
+.data-table tbody td { padding: .45rem .45rem; border-top: 1px solid var(--border); vertical-align: middle; }
 .data-table tbody tr { transition: background .15s ease; }
 .data-table tbody tr:hover { background: color-mix(in hsl, var(--primary) 8%, transparent); }
 
 /* Stabilize column widths and control wrapping */
 .data-table th, .data-table td { overflow: hidden; text-overflow: ellipsis; }
-.data-table th:nth-child(2), .data-table td:nth-child(2) { white-space: normal; min-width: 260px; } /* Label column can wrap */
+.data-table th:nth-child(2), .data-table td:nth-child(2) { white-space: normal; width: 150px; } /* Label column can wrap */
 .data-table th:nth-child(1), .data-table td:nth-child(1),
 .data-table th:nth-child(3), .data-table td:nth-child(3),
 .data-table th:nth-child(4), .data-table td:nth-child(4),
 .data-table th:nth-child(5), .data-table td:nth-child(5),
 .data-table th:nth-child(6), .data-table td:nth-child(6),
 .data-table th:nth-child(7), .data-table td:nth-child(7) { white-space: nowrap; }
-.data-table th:nth-child(1), .data-table td:nth-child(1) { width: 80px; }   /* ID */
-.data-table th:nth-child(3), .data-table td:nth-child(3) { width: 130px; }  /* Type */
-.data-table th:nth-child(4), .data-table td:nth-child(4) { width: 130px; }  /* Level */
-.data-table th:nth-child(5), .data-table td:nth-child(5) { width: 190px; }  /* meanp */
-.data-table th:nth-child(6), .data-table td:nth-child(6) { width: 210px; }  /* meanrit */
-.data-table th:nth-child(7), .data-table td:nth-child(7) { width: 220px; white-space: normal; }  /* Content Area */
+.data-table th:nth-child(1), .data-table td:nth-child(1) { width: 52px; }   /* ID */
+.data-table th:nth-child(3), .data-table td:nth-child(3) { width: 70px; }  /* Type */
+/* Ensure numeric headers remain visible and shift columns slightly left by tightening padding */
+.data-table th:nth-child(3), .data-table td:nth-child(3),
+.data-table th:nth-child(4), .data-table td:nth-child(4),
+.data-table th:nth-child(5), .data-table td:nth-child(5),
+.data-table th:nth-child(6), .data-table td:nth-child(6),
+.data-table th:nth-child(7), .data-table td:nth-child(7) { padding-left: .18rem; padding-right: .18rem; }
+.data-table th:nth-child(4), .data-table td:nth-child(4) { width: 84px; }    /* Level */
+.data-table th:nth-child(4) { text-align: center; }
+.data-table th:nth-child(5), .data-table td:nth-child(5) { width: 100px; }   /* Difficulty */
+.data-table th:nth-child(6), .data-table td:nth-child(6) { width: 110px; }   /* Discrimination */
+.data-table th:nth-child(7), .data-table td:nth-child(7) { width: 140px; white-space: nowrap; }  /* Content Area */
+
+/* Make numeric columns compact and stable */
+.data-table th:nth-child(5), .data-table th:nth-child(6) { text-align: right; }
+.data-table td:nth-child(5), .data-table td:nth-child(6) { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Smaller badges inside table cells for a cleaner, compact look */
+.data-table td .badge { font-size: .65rem; padding: .14rem .3rem; }
 
 /* Allow long labels/names to wrap properly */
 .cell-main { min-width: 0; }
 .cell-main .title, .cell-main .sub { display: block; overflow: hidden; text-overflow: ellipsis; }
 .cell-main .sub { color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; word-break: break-word; }
 
-/* Allow badge text to wrap instead of overflowing */
-.data-table td:nth-child(7) .badge { white-space: normal; overflow-wrap: anywhere; line-height: 1.1; }
+/* Keep content area badge single-line with ellipsis so rows stay compact */
+.data-table td:nth-child(7) .badge { display: inline-block; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.05; }
 
 .cell-main .title { font-weight: 600; }
 .cell-main .sub { color: var(--muted); font-size: .85rem; }
