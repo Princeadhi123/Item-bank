@@ -130,6 +130,8 @@ def build_where_clauses(
     meanp_max: Optional[float] = None,
     a_irt_min: Optional[float] = None,
     a_irt_max: Optional[float] = None,
+    meanrit_min: Optional[float] = None,
+    meanrit_max: Optional[float] = None,
 ) -> Tuple[List[str], List[Any]]:
     clauses: List[str] = []
     params: List[Any] = []
@@ -211,6 +213,13 @@ def build_where_clauses(
         clauses.append("ids.a_irt <= ?")
         params.append(a_irt_max)
 
+    if meanrit_min is not None:
+        clauses.append("ids.meanrit_classical >= ?")
+        params.append(meanrit_min)
+    if meanrit_max is not None:
+        clauses.append("ids.meanrit_classical <= ?")
+        params.append(meanrit_max)
+
     return clauses, params
 
 
@@ -248,6 +257,8 @@ def list_items(
     meanp_max: Optional[float] = None,
     a_irt_min: Optional[float] = None,
     a_irt_max: Optional[float] = None,
+    meanrit_min: Optional[float] = None,
+    meanrit_max: Optional[float] = None,
     sort_by: str = Query("id"),
     sort_dir: str = Query("asc"),
 ):
@@ -264,6 +275,8 @@ def list_items(
         meanp_max=meanp_max,
         a_irt_min=a_irt_min,
         a_irt_max=a_irt_max,
+        meanrit_min=meanrit_min,
+        meanrit_max=meanrit_max,
     )
 
     where_sql = f" WHERE {' AND '.join(where_clauses)}" if where_clauses else ""

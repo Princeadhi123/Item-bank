@@ -14,8 +14,8 @@ const state = {
     sources: new Set(),
     meanpMin: '',
     meanpMax: '',
-    aIrtMin: '',
-    aIrtMax: '',
+    meanritMin: '',
+    meanritMax: '',
   }
 };
 
@@ -72,8 +72,8 @@ function buildQuery() {
 
   if (state.filters.meanpMin) p.set('meanp_min', state.filters.meanpMin);
   if (state.filters.meanpMax) p.set('meanp_max', state.filters.meanpMax);
-  if (state.filters.aIrtMin) p.set('a_irt_min', state.filters.aIrtMin);
-  if (state.filters.aIrtMax) p.set('a_irt_max', state.filters.aIrtMax);
+  if (state.filters.meanritMin) p.set('meanrit_min', state.filters.meanritMin);
+  if (state.filters.meanritMax) p.set('meanrit_max', state.filters.meanritMax);
 
   return p.toString();
 }
@@ -307,16 +307,16 @@ async function buildFilters() {
   numGrid.innerHTML = `
     <label>meanp min <input id="meanpMin" type="number" step="0.01" placeholder="0"/></label>
     <label>meanp max <input id="meanpMax" type="number" step="0.01" placeholder="1"/></label>
-    <label>a_irt min <input id="aIrtMin" type="number" step="0.01" placeholder=""/></label>
-    <label>a_irt max <input id="aIrtMax" type="number" step="0.01" placeholder=""/></label>
+    <label>meanrit min <input id="meanritMin" type="number" step="0.01" min="-1" max="1" placeholder="0"/></label>
+    <label>meanrit max <input id="meanritMax" type="number" step="0.01" min="-1" max="1" placeholder="1"/></label>
   `;
   secNum.appendChild(numGrid);
   root.appendChild(secNum);
 
   $('#meanpMin').addEventListener('input', debounce((e) => { state.filters.meanpMin = e.target.value; state.page = 1; loadItems(); }, 400));
   $('#meanpMax').addEventListener('input', debounce((e) => { state.filters.meanpMax = e.target.value; state.page = 1; loadItems(); }, 400));
-  $('#aIrtMin').addEventListener('input', debounce((e) => { state.filters.aIrtMin = e.target.value; state.page = 1; loadItems(); }, 400));
-  $('#aIrtMax').addEventListener('input', debounce((e) => { state.filters.aIrtMax = e.target.value; state.page = 1; loadItems(); }, 400));
+  $('#meanritMin').addEventListener('input', debounce((e) => { state.filters.meanritMin = e.target.value; state.page = 1; loadItems(); }, 400));
+  $('#meanritMax').addEventListener('input', debounce((e) => { state.filters.meanritMax = e.target.value; state.page = 1; loadItems(); }, 400));
 }
 
 function setupSort() {
@@ -364,7 +364,7 @@ function setupToolbar() {
   }
 
   $('#clearFilters').addEventListener('click', () => {
-    state.filters = { itemTypes: new Set(), levels: new Set(), contentArea: '', targetAreas: new Set(), nutaSkillLevels: new Set(), sources: new Set(), meanpMin: '', meanpMax: '', aIrtMin: '', aIrtMax: '' };
+    state.filters = { itemTypes: new Set(), levels: new Set(), contentArea: '', targetAreas: new Set(), nutaSkillLevels: new Set(), sources: new Set(), meanpMin: '', meanpMax: '', meanritMin: '', meanritMax: '' };
     buildFilters();
     state.page = 1; loadItems();
   });
