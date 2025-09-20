@@ -469,7 +469,7 @@ function renderDetails(item) {
       </ul>
     </div>
     <div>
-      <h3>Discrimination</h3>
+      <h3>Discrimination (Classical & IRT)</h3>
       <ul class="kv">
         <li><span>meanrit_classical</span><b>${toFixedOrDash(disc.meanrit_classical)}</b></li>
         <li><span>meang_classical</span><b>${toFixedOrDash(disc.meang_classical)}</b></li>

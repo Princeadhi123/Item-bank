@@ -143,14 +143,21 @@ body {
 .detail-header .sub { color: var(--muted); }
 .detail-header .meta { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .5rem; }
 
+/* Colorful badges in details header (works in light and dark) */
+.detail-header .meta .badge { display: inline-block; padding: .25rem .5rem; border-radius: .6rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-weight: 500; }
+.detail-header .meta .badge.type { background: color-mix(in hsl, var(--primary) 18%, transparent); border-color: color-mix(in hsl, var(--primary) 50%, transparent); }
+.detail-header .meta .badge.level { background: color-mix(in hsl, var(--success) 18%, transparent); border-color: color-mix(in hsl, var(--success) 50%, transparent); }
+.detail-header .meta .badge.content { background: color-mix(in hsl, var(--warning) 18%, transparent); border-color: color-mix(in hsl, var(--warning) 50%, transparent); }
+
 .detail-section { border-top: 1px dashed var(--border); padding-top: .8rem; margin-top: .8rem; }
 .detail-section.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem; }
 .kv { list-style: none; padding: 0; margin: .3rem 0 0; }
 .kv li { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .2rem 0; }
 .kv span { color: var(--muted); }
 
-.bar-row { display: grid; grid-template-columns: 160px 1fr 70px; gap: .6rem; align-items: center; margin: .35rem 0; }
-.bar-label { color: var(--muted); }
+.bar-row { display: grid; grid-template-columns: 200px 1fr 70px; gap: .6rem; align-items: center; margin: .45rem 0; }
+.bar-label { color: var(--muted); overflow: hidden; }
+.bar-label { white-space: normal; overflow-wrap: anywhere; }
 .bar-track { background: color-mix(in hsl, var(--primary) 12%, transparent); border-radius: 999px; height: 8px; overflow: hidden; border: 1px solid color-mix(in hsl, var(--primary) 35%, transparent); }
 .bar-fill { background: var(--primary); height: 100%; }
 
