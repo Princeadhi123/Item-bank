@@ -84,13 +84,37 @@ body {
 .spacer { flex: 1; }
 .pagesize select { padding: .3rem .4rem; border-radius: .4rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
 
-.table-wrap { position: relative; height: calc(100vh - 150px); overflow: auto; }
-.data-table { width: 100%; border-collapse: collapse; background: var(--bg-elev); border: 1px solid var(--border); border-radius: .6rem; overflow: visible; }
+.table-wrap { position: relative; height: calc(100vh - 150px); overflow: auto; overflow-x: auto; scrollbar-gutter: stable both-edges; }
+.data-table { width: 100%; min-width: 1200px; border-collapse: collapse; background: var(--bg-elev); border: 1px solid var(--border); border-radius: .6rem; overflow: visible; table-layout: fixed; }
 .data-table thead { background: var(--bg-elev); }
 .data-table thead th { text-align: left; padding: .7rem .7rem; border-bottom: 1px solid var(--border); color: var(--muted); position: sticky; top: 0; z-index: 10; background: var(--bg-elev); cursor: pointer; }
 .data-table tbody td { padding: .7rem .7rem; border-top: 1px solid var(--border); vertical-align: top; }
 .data-table tbody tr { transition: background .15s ease; }
 .data-table tbody tr:hover { background: color-mix(in hsl, var(--primary) 8%, transparent); }
+
+/* Stabilize column widths and control wrapping */
+.data-table th, .data-table td { overflow: hidden; text-overflow: ellipsis; }
+.data-table th:nth-child(2), .data-table td:nth-child(2) { white-space: normal; min-width: 260px; } /* Label column can wrap */
+.data-table th:nth-child(1), .data-table td:nth-child(1),
+.data-table th:nth-child(3), .data-table td:nth-child(3),
+.data-table th:nth-child(4), .data-table td:nth-child(4),
+.data-table th:nth-child(5), .data-table td:nth-child(5),
+.data-table th:nth-child(6), .data-table td:nth-child(6),
+.data-table th:nth-child(7), .data-table td:nth-child(7) { white-space: nowrap; }
+.data-table th:nth-child(1), .data-table td:nth-child(1) { width: 80px; }   /* ID */
+.data-table th:nth-child(3), .data-table td:nth-child(3) { width: 130px; }  /* Type */
+.data-table th:nth-child(4), .data-table td:nth-child(4) { width: 130px; }  /* Level */
+.data-table th:nth-child(5), .data-table td:nth-child(5) { width: 190px; }  /* meanp */
+.data-table th:nth-child(6), .data-table td:nth-child(6) { width: 210px; }  /* meanrit */
+.data-table th:nth-child(7), .data-table td:nth-child(7) { width: 220px; white-space: normal; }  /* Content Area */
+
+/* Allow long labels/names to wrap properly */
+.cell-main { min-width: 0; }
+.cell-main .title, .cell-main .sub { display: block; overflow: hidden; text-overflow: ellipsis; }
+.cell-main .sub { color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; word-break: break-word; }
+
+/* Allow badge text to wrap instead of overflowing */
+.data-table td:nth-child(7) .badge { white-space: normal; overflow-wrap: anywhere; line-height: 1.1; }
 
 .cell-main .title { font-weight: 600; }
 .cell-main .sub { color: var(--muted); font-size: .85rem; }
