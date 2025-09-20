@@ -379,6 +379,10 @@ async function openDetails(id) {
     const drawer = $('#detailsDrawer');
     drawer.classList.add('open');
     drawer.setAttribute('aria-hidden', 'false');
+    // Prevent background scroll and ensure details start at top
+    document.body.classList.add('no-scroll');
+    const dr = $('#detailsRoot');
+    if (dr) dr.scrollTop = 0;
   } catch (e) {
     console.error(e);
     alert('Failed to load item details');
@@ -389,6 +393,8 @@ function closeDetails() {
   const drawer = $('#detailsDrawer');
   drawer.classList.remove('open');
   drawer.setAttribute('aria-hidden', 'true');
+  // Re-enable background scroll
+  document.body.classList.remove('no-scroll');
 }
 
 function barRow(label, value, max=1) {

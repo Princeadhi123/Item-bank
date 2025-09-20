@@ -133,10 +133,11 @@ body {
 
 .drawer { position: fixed; inset: 0; display: none; }
 .drawer.open { display: block; }
-.drawer-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.4); }
-.drawer-content { position: absolute; top: 0; right: 0; bottom: 0; width: min(520px, 100%); background: var(--bg-elev); border-left: 1px solid var(--border); box-shadow: -10px 0 30px rgba(0,0,0,.3); display: flex; flex-direction: column; }
+.drawer { z-index: 2000; }
+.drawer-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.4); z-index: 1; }
+.drawer-content { position: absolute; top: 0; right: 0; bottom: 0; width: min(520px, 100%); background: var(--bg-elev); border-left: 1px solid var(--border); box-shadow: -10px 0 30px rgba(0,0,0,.3); display: flex; flex-direction: column; z-index: 2; }
 .btn.close { position: absolute; top: .6rem; right: .6rem; }
-.details-root { padding: 1rem; overflow: auto; }
+.details-root { padding: 1rem; overflow: auto; flex: 1 1 auto; min-height: 0; }
 .detail-header .id { color: var(--muted); font-size: .85rem; }
 .detail-header h2 { margin: .2rem 0; }
 .detail-header .sub { color: var(--muted); }
@@ -154,3 +155,6 @@ body {
 .bar-fill { background: var(--primary); height: 100%; }
 
 .app-footer { text-align: center; color: var(--muted); border-top: 1px solid var(--border); padding: .8rem; background: var(--bg-elev); }
+
+/* Prevent background scroll when drawer is open */
+body.no-scroll { overflow: hidden; }
