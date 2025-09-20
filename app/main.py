@@ -19,6 +19,8 @@ DEFAULT_EXCEL_PATH = r"c:\\Users\\pdaadh\\Desktop\\Item bank\\Item bank from Dig
 class IngestRequest(BaseModel):
     excel_path: Optional[str] = None
     sheet_index: Optional[int] = None  # 0-based; Sheet 2 is 1
+    table_name: Optional[str] = None   # Defaults to 'items' if not provided
+    map_to_items: Optional[bool] = False  # If true and table_name != 'items', verify row alignment
 
 
 @app.get("/health")
@@ -37,15 +39,121 @@ async def health() -> Dict[str, Any]:
 async def ingest(req: IngestRequest) -> Dict[str, Any]:
     excel_path = req.excel_path or DEFAULT_EXCEL_PATH
     sheet_index = DEFAULT_SHEET_INDEX if req.sheet_index is None else req.sheet_index
+    table_name = req.table_name or "items"
 
     path = Path(excel_path)
     if not path.exists():
         raise HTTPException(status_code=400, detail=f"Excel file not found: {excel_path}")
 
     engine = get_engine()
-    result = load_excel_to_sqlite(engine, str(path), sheet_index=sheet_index, table_name="items")
-    return {"message": "Ingestion complete", **result}
+    result = load_excel_to_sqlite(engine, str(path), sheet_index=sheet_index, table_name=table_name)
 
+    response: Dict[str, Any] = {"message": "Ingestion complete", **result}
+
+    # If requested, verify mapping to items by shared id/sequence
+    if req.map_to_items and table_name != "items":
+        items_exists = table_exists(engine, "items")
+        response["items_table_exists"] = items_exists
+        if items_exists:
+            items_count = get_row_count(engine, "items") or 0
+            new_count = get_row_count(engine, table_name) or 0
+            response["items_row_count"] = items_count
+            response["new_table_row_count"] = new_count
+            response["mapped_by_sequence"] = (items_count == new_count)
+            if items_count != new_count:
+                response["warning"] = (
+                    "Row counts differ between 'items' and the new table; mapping by id may be inconsistent."
+                )
+            else:
+                # Create or replace a view that joins items with the new table by id
+                # Aliasing new table's non-id columns with table-prefixed names to avoid collisions
+                view_name = f"items_with_{table_name}"
+                with engine.begin() as conn:
+                    # Get columns of the new table
+                    cols = [row[1] for row in conn.execute(text(f"PRAGMA table_info({table_name})")).fetchall()]
+                    prefix = f"{table_name}_"
+                    select_aliases = []
+                    for c in cols:
+                        if c == "id":
+                            continue
+                        alias = f"{prefix}{c}"
+                        # Quote identifiers with double quotes for safety
+                        select_aliases.append(f"ca.\"{c}\" AS \"{alias}\"")
+
+                    select_sql = ", ".join(["i.*"] + select_aliases) if select_aliases else "i.*"
+
+                    # Drop and recreate the view to reflect latest schema
+                    conn.execute(text(f"DROP VIEW IF EXISTS \"{view_name}\""))
+                    conn.execute(text(
+                        f"CREATE VIEW \"{view_name}\" AS "
+                        f"SELECT {select_sql} FROM items i LEFT JOIN {table_name} ca ON ca.id = i.id"
+                    ))
+
+                response["view_created"] = True
+                response["view_name"] = view_name
+        else:
+            response["warning"] = "Base table 'items' does not exist; mapping-by-sequence could not be verified."
+
+    return response
+
+
+@app.get("/ingest_q")
+async def ingest_q(
+    excel_path: Optional[str] = None,
+    sheet_index: Optional[int] = None,
+    table_name: Optional[str] = None,
+    map_to_items: bool = False,
+) -> Dict[str, Any]:
+    # Mirror the POST /ingest behavior using query params
+    excel_path = excel_path or DEFAULT_EXCEL_PATH
+    sheet_index = DEFAULT_SHEET_INDEX if sheet_index is None else sheet_index
+    table_name = table_name or "items"
+
+    path = Path(excel_path)
+    if not path.exists():
+        raise HTTPException(status_code=400, detail=f"Excel file not found: {excel_path}")
+
+    engine = get_engine()
+    result = load_excel_to_sqlite(engine, str(path), sheet_index=sheet_index, table_name=table_name)
+
+    response: Dict[str, Any] = {"message": "Ingestion complete", **result}
+
+    if map_to_items and table_name != "items":
+        items_exists = table_exists(engine, "items")
+        response["items_table_exists"] = items_exists
+        if items_exists:
+            items_count = get_row_count(engine, "items") or 0
+            new_count = get_row_count(engine, table_name) or 0
+            response["items_row_count"] = items_count
+            response["new_table_row_count"] = new_count
+            response["mapped_by_sequence"] = (items_count == new_count)
+            if items_count != new_count:
+                response["warning"] = (
+                    "Row counts differ between 'items' and the new table; mapping by id may be inconsistent."
+                )
+            else:
+                view_name = f"items_with_{table_name}"
+                with engine.begin() as conn:
+                    cols = [row[1] for row in conn.execute(text(f"PRAGMA table_info({table_name})")).fetchall()]
+                    prefix = f"{table_name}_"
+                    select_aliases = []
+                    for c in cols:
+                        if c == "id":
+                            continue
+                        alias = f"{prefix}{c}"
+                        select_aliases.append(f"ca.\"{c}\" AS \"{alias}\"")
+                    select_sql = ", ".join(["i.*"] + select_aliases) if select_aliases else "i.*"
+                    conn.execute(text(f"DROP VIEW IF EXISTS \"{view_name}\""))
+                    conn.execute(text(
+                        f"CREATE VIEW \"{view_name}\" AS "
+                        f"SELECT {select_sql} FROM items i LEFT JOIN {table_name} ca ON ca.id = i.id"
+                    ))
+                response["view_created"] = True
+                response["view_name"] = view_name
+        else:
+            response["warning"] = "Base table 'items' does not exist; mapping-by-sequence could not be verified."
+
+    return response
 
 @app.get("/columns")
 async def list_columns() -> Dict[str, List[str]]:
@@ -58,6 +166,15 @@ async def list_columns() -> Dict[str, List[str]]:
         # rows: cid, name, type, notnull, dflt_value, pk
         cols = [r[1] for r in rows]
     return {"columns": cols}
+
+
+@app.get("/tables")
+async def list_tables() -> Dict[str, List[str]]:
+    engine = get_engine()
+    with engine.connect() as conn:
+        tables = [r[0] for r in conn.execute(text("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")).fetchall()]
+        views = [r[0] for r in conn.execute(text("SELECT name FROM sqlite_master WHERE type='view' ORDER BY name")).fetchall()]
+    return {"tables": tables, "views": views}
 
 
 @app.get("/items")
