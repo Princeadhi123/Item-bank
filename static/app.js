@@ -27,6 +27,23 @@ function debounce(fn, delay = 300) {
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
 }
 
+// Sync sticky offsets with the actual header height (Bootstrap navbar)
+function setupStickyOffsets() {
+  const header = document.querySelector('.app-header');
+  if (!header) return;
+  const apply = () => {
+    const h = Math.ceil(header.getBoundingClientRect().height);
+    document.documentElement.style.setProperty('--header-offset', `${h}px`);
+  };
+  apply();
+  try {
+    const ro = new ResizeObserver(apply);
+    ro.observe(header);
+  } catch (_) {
+    window.addEventListener('resize', debounce(apply, 100));
+  }
+}
+
 async function fetchJSON(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Request failed: ${res.status}`);
@@ -69,7 +86,11 @@ function toFixedOrDash(v, d = 3) {
 
 function badge(text, cls = '') {
   const span = document.createElement('span');
-  span.className = `badge ${cls}`.trim();
+  let classes = 'badge rounded-pill text-bg-secondary';
+  if (cls === 'type') classes = 'badge rounded-pill text-bg-primary';
+  else if (cls === 'level') classes = 'badge rounded-pill text-bg-success';
+  else if (cls === 'content') classes = 'badge rounded-pill text-bg-warning';
+  span.className = classes;
   span.textContent = text;
   return span;
 }
@@ -109,7 +130,8 @@ function renderPagination(page, totalPages) {
   start = Math.max(1, end - maxButtons + 1);
   for (let p = start; p <= end; p++) {
     const btn = document.createElement('button');
-    btn.className = 'btn page' + (p === page ? ' active' : '');
+    const isActive = p === page;
+    btn.className = `btn btn-sm ${isActive ? 'btn-primary' : 'btn-outline-secondary'} page`;
     btn.textContent = String(p);
     btn.addEventListener('click', () => { state.page = p; loadItems(); });
     container.appendChild(btn);
@@ -145,23 +167,26 @@ function filterSection(titleText) {
 }
 
 function checkbox(id, label, checked=false) {
-  const div = document.createElement('label');
-  div.className = 'check';
+  const div = document.createElement('div');
+  div.className = 'form-check';
   const input = document.createElement('input');
   input.type = 'checkbox';
   input.id = id;
   input.checked = checked;
-  const span = document.createElement('span');
-  span.textContent = label;
+  input.className = 'form-check-input';
+  const lab = document.createElement('label');
+  lab.className = 'form-check-label';
+  lab.setAttribute('for', id);
+  lab.textContent = label;
   div.appendChild(input);
-  div.appendChild(span);
+  div.appendChild(lab);
   return {root: div, input};
 }
 
 function chip(label, active=false) {
   const b = document.createElement('button');
   b.type = 'button';
-  b.className = 'chip' + (active ? ' active' : '');
+  b.className = `chip btn btn-sm rounded-pill ${active ? 'btn-primary' : 'btn-outline-primary'}`;
   b.textContent = label;
   return b;
 }
@@ -206,11 +231,13 @@ async function buildFilters() {
     b.addEventListener('click', () => {
       if (state.filters.contentArea === ca.key) {
         state.filters.contentArea = '';
-        b.classList.remove('active');
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-outline-primary');
       } else {
         state.filters.contentArea = ca.key;
-        $$('.chips .chip', secCA).forEach(x => x.classList.remove('active'));
-        b.classList.add('active');
+        $$('.chips .chip', secCA).forEach(x => { x.classList.remove('btn-primary'); x.classList.add('btn-outline-primary'); });
+        b.classList.add('btn-primary');
+        b.classList.remove('btn-outline-primary');
       }
       state.page = 1; loadItems();
     });
@@ -226,8 +253,16 @@ async function buildFilters() {
   for (const t of data.target_areas) {
     const b = chip(t.label);
     b.addEventListener('click', () => {
-      const active = b.classList.toggle('active');
-      if (active) state.filters.targetAreas.add(t.key); else state.filters.targetAreas.delete(t.key);
+      const willSelect = !b.classList.contains('btn-primary');
+      if (willSelect) {
+        b.classList.remove('btn-outline-primary');
+        b.classList.add('btn-primary');
+        state.filters.targetAreas.add(t.key);
+      } else {
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-outline-primary');
+        state.filters.targetAreas.delete(t.key);
+      }
       state.page = 1; loadItems();
     });
     taWrap.appendChild(b);
@@ -320,12 +355,16 @@ function setupToolbar() {
     state.page = 1; loadItems();
   });
 
-  // Theme toggle
+  // Theme toggle (sync our theme and Bootstrap)
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  document.documentElement.dataset.theme = prefersDark ? 'dark' : 'light';
+  const setTheme = (mode) => {
+    document.documentElement.dataset.theme = mode; // for our custom CSS vars
+    document.documentElement.setAttribute('data-bs-theme', mode); // for Bootstrap 5.3
+  };
+  setTheme(prefersDark ? 'dark' : 'light');
   $('#themeToggle').addEventListener('click', () => {
-    const c = document.documentElement.dataset.theme;
-    document.documentElement.dataset.theme = c === 'dark' ? 'light' : 'dark';
+    const curr = document.documentElement.getAttribute('data-bs-theme') || document.documentElement.dataset.theme || 'light';
+    setTheme(curr === 'dark' ? 'light' : 'dark');
   });
 }
 
@@ -450,6 +489,7 @@ function initEvents() {
 }
 
 async function init() {
+  setupStickyOffsets();
   initEvents();
   await buildFilters();
   await loadItems();
