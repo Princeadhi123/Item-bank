@@ -76,6 +76,7 @@ SAFE_SORT_COLUMNS = {
     "level": "ih.hierarchical_level_all",
     "meanp": "idl.meanp_all_classical",
     "a_irt": "ids.a_irt",
+    "meanrit_classical": "ids.meanrit_classical",
     "n": "i.n",
 }
 
@@ -292,6 +293,7 @@ def list_items(
             "item_type_all": r["item_type_all"],
             "hierarchical_level_all": r["hierarchical_level_all"],
             "meanp_all_classical": r["meanp_all_classical"],
+            "meanrit_classical": r["meanrit_classical"],
             "a_irt": r["a_irt"],
             "dominant_content_area": dominant_content_area(r),
         })

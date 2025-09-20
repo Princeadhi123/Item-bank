@@ -116,7 +116,7 @@ function renderRows(items) {
       <td>${it.item_type_all ? badge(it.item_type_all, 'type').outerHTML : ''}</td>
       <td>${it.hierarchical_level_all ? badge(it.hierarchical_level_all, 'level').outerHTML : ''}</td>
       <td>${toFixedOrDash(it.meanp_all_classical, 3)}</td>
-      <td>${toFixedOrDash(it.a_irt, 3)}</td>
+      <td>${toFixedOrDash(it.meanrit_classical, 3)}</td>
       <td>${it.dominant_content_area ? badge(it.dominant_content_area, 'content').outerHTML : ''}</td>
     `;
     tr.addEventListener('click', () => openDetails(it.id));
