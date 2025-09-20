@@ -88,8 +88,8 @@ body {
 
 .table-wrap { position: relative; height: calc(100vh - 150px); overflow: auto; overflow-x: auto; scrollbar-gutter: stable both-edges; }
 .data-table { width: 100%; min-width: 780px; border-collapse: collapse; background: var(--bg-elev); border: 1px solid var(--border); border-radius: .6rem; overflow: visible; table-layout: fixed; font-size: .9rem; }
-.data-table thead th { text-align: left; padding: .55rem .45rem; border-bottom: 1px solid var(--border); color: var(--muted); position: sticky; top: 0; z-index: 10; background: var(--bg-elev); cursor: pointer; white-space: normal !important; word-break: break-word; line-height: 1.2; font-size: .84rem; }
-.data-table tbody td { padding: .45rem .45rem; border-top: 1px solid var(--border); vertical-align: middle; }
+.data-table thead th { text-align: center; padding: .55rem .45rem; border-bottom: 1px solid var(--border); color: var(--muted); position: sticky; top: 0; z-index: 10; background: var(--bg-elev); cursor: pointer; white-space: normal !important; word-break: break-word; line-height: 1.2; font-size: .84rem; }
+.data-table tbody td { padding: .45rem .45rem; border-top: 1px solid var(--border); vertical-align: middle; text-align: center; }
 .data-table tbody tr { transition: background .15s ease; }
 .data-table tbody tr:hover { background: color-mix(in hsl, var(--primary) 8%, transparent); }
 
@@ -117,8 +117,8 @@ body {
 .data-table th:nth-child(7), .data-table td:nth-child(7) { width: 140px; white-space: nowrap; }  /* Content Area */
 
 /* Make numeric columns compact and stable */
-.data-table th:nth-child(5), .data-table th:nth-child(6) { text-align: right; }
-.data-table td:nth-child(5), .data-table td:nth-child(6) { text-align: right; font-variant-numeric: tabular-nums; }
+.data-table th:nth-child(5), .data-table th:nth-child(6) { text-align: center; }
+.data-table td:nth-child(5), .data-table td:nth-child(6) { text-align: center; font-variant-numeric: tabular-nums; }
 
 /* Smaller badges inside table cells for a cleaner, compact look */
 .data-table td .badge { font-size: .65rem; padding: .14rem .3rem; }
