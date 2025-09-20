@@ -347,11 +347,21 @@ function setupToolbar() {
   $('#prevPage').addEventListener('click', () => { if (state.page > 1) { state.page--; loadItems(); } });
   $('#nextPage').addEventListener('click', () => { if (state.page < state.totalPages) { state.page++; loadItems(); } });
 
-  $('#toggleFilters').addEventListener('click', () => {
-    const panel = $('#filtersPanel');
-    panel.classList.toggle('open');
-    $('#toggleFilters').setAttribute('aria-expanded', String(panel.classList.contains('open')));
-  });
+  const toggleBtn = $('#toggleFilters');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      try {
+        const appContent = document.querySelector('.app-content');
+        const panel = $('#filtersPanel');
+        const nowOpen = !(appContent && appContent.classList.contains('filters-open'));
+        if (appContent) appContent.classList.toggle('filters-open', nowOpen);
+        if (panel) panel.classList.toggle('open', nowOpen); // for mobile fixed panel
+        toggleBtn.setAttribute('aria-expanded', String(nowOpen));
+      } catch (err) {
+        console.error('Failed to toggle filters:', err);
+      }
+    });
+  }
 
   $('#clearFilters').addEventListener('click', () => {
     state.filters = { itemTypes: new Set(), levels: new Set(), contentArea: '', targetAreas: new Set(), nutaSkillLevels: new Set(), sources: new Set(), meanpMin: '', meanpMax: '', aIrtMin: '', aIrtMax: '' };
@@ -501,6 +511,12 @@ function initEvents() {
 async function init() {
   setupStickyOffsets();
   initEvents();
+  // Ensure filters visible by default on desktop widths
+  const appContent = document.querySelector('.app-content');
+  if (window.innerWidth > 1000) {
+    appContent.classList.add('filters-open');
+    $('#toggleFilters').setAttribute('aria-expanded', 'true');
+  }
   await buildFilters();
   await loadItems();
 }
