@@ -188,11 +188,15 @@ def build_where_clauses(
             clauses.append(f"({or_clause})")
 
     if target_areas:
+        cols = []
         for t in target_areas:
-            tkey = t.lower().strip()
+            tkey = (t or "").lower().strip()
             if tkey not in target_area_map:
                 raise HTTPException(status_code=400, detail="Invalid target area key")
-            clauses.append(f"COALESCE({target_area_map[tkey]}, 0) > 0")
+            cols.append(target_area_map[tkey])
+        if cols:
+            or_clause = " OR ".join([f"COALESCE({c}, 0) > 0" for c in cols])
+            clauses.append(f"({or_clause})")
 
     if nuta_levels:
         placeholders = ",".join(["?"] * len(nuta_levels))
