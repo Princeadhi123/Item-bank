@@ -122,7 +122,7 @@ def build_where_clauses(
     search: Optional[str] = None,
     item_types: Optional[List[str]] = None,
     levels: Optional[List[str]] = None,
-    content_area: Optional[str] = None,  # expects one of s1..s6
+    content_areas: Optional[List[str]] = None,  # expects list of s1..s6
     target_areas: Optional[List[str]] = None,  # expects t10..t20
     nuta_levels: Optional[List[str]] = None,
     sources: Optional[List[str]] = None,
@@ -176,11 +176,16 @@ def build_where_clauses(
         clauses.append(f"ih.hierarchical_level_all IN ({placeholders})")
         params.extend(levels)
 
-    if content_area:
-        ca = content_area.lower().strip()
-        if ca not in content_area_map:
-            raise HTTPException(status_code=400, detail="Invalid content_area; use s1..s6")
-        clauses.append(f"COALESCE({content_area_map[ca]}, 0) > 0")
+    if content_areas:
+        cols = []
+        for ca in content_areas:
+            key = (ca or "").lower().strip()
+            if key not in content_area_map:
+                raise HTTPException(status_code=400, detail="Invalid content_area; use s1..s6")
+            cols.append(content_area_map[key])
+        if cols:
+            or_clause = " OR ".join([f"COALESCE({c}, 0) > 0" for c in cols])
+            clauses.append(f"({or_clause})")
 
     if target_areas:
         for t in target_areas:
@@ -249,7 +254,7 @@ def list_items(
     search: Optional[str] = None,
     item_type: Optional[List[str]] = Query(None),
     level: Optional[List[str]] = Query(None),
-    content_area: Optional[str] = None,
+    content_area: Optional[List[str]] = Query(None),
     target_area: Optional[List[str]] = Query(None),
     nuta_skill_level: Optional[List[str]] = Query(None),
     source: Optional[List[str]] = Query(None),
@@ -267,7 +272,7 @@ def list_items(
         search=search,
         item_types=item_type,
         levels=level,
-        content_area=content_area,
+        content_areas=content_area,
         target_areas=target_area,
         nuta_levels=nuta_skill_level,
         sources=source,

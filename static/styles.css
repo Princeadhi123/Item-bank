@@ -75,6 +75,7 @@ body {
 .chips { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: center; }
 .chip { border: 1px solid var(--border); background: var(--bg); color: var(--text); padding: .35rem .6rem; border-radius: 999px; cursor: pointer; }
 .chip.active { background: var(--primary); color: white; border-color: transparent; }
+.chip.btn-primary { box-shadow: 0 0 0 2px color-mix(in hsl, var(--primary) 40%, transparent), 0 0 10px color-mix(in hsl, var(--primary) 30%, transparent); }
 .num-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: .6rem; }
 .num-grid label { display: flex; flex-direction: column; gap: .25rem; font-size: .9rem; }
 .num-grid input { padding: .4rem .5rem; border-radius: .4rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); }

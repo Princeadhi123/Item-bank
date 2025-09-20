@@ -8,7 +8,7 @@ const state = {
   filters: {
     itemTypes: new Set(),
     levels: new Set(),
-    contentArea: '',
+    contentAreas: new Set(),
     targetAreas: new Set(),
     nutaSkillLevels: new Set(),
     sources: new Set(),
@@ -25,6 +25,49 @@ const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 function debounce(fn, delay = 300) {
   let t;
   return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); };
+}
+
+// Persist filters so selected chips remain highlighted across reloads
+const FILTERS_STORAGE_KEY = 'itembank_filters_v1';
+function saveFiltersToStorage() {
+  try {
+    const f = state.filters;
+    const payload = {
+      itemTypes: Array.from(f.itemTypes),
+      levels: Array.from(f.levels),
+      contentAreas: Array.from(f.contentAreas),
+      targetAreas: Array.from(f.targetAreas),
+      nutaSkillLevels: Array.from(f.nutaSkillLevels),
+      sources: Array.from(f.sources),
+      meanpMin: f.meanpMin || '',
+      meanpMax: f.meanpMax || '',
+      meanritMin: f.meanritMin || '',
+      meanritMax: f.meanritMax || '',
+    };
+    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(payload));
+  } catch (e) {
+    console.warn('Failed to save filters', e);
+  }
+}
+
+function loadFiltersFromStorage() {
+  try {
+    const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!raw) return;
+    const f = JSON.parse(raw);
+    state.filters.itemTypes = new Set(f.itemTypes || []);
+    state.filters.levels = new Set(f.levels || []);
+    state.filters.contentAreas = new Set(f.contentAreas || []);
+    state.filters.targetAreas = new Set(f.targetAreas || []);
+    state.filters.nutaSkillLevels = new Set(f.nutaSkillLevels || []);
+    state.filters.sources = new Set(f.sources || []);
+    state.filters.meanpMin = f.meanpMin || '';
+    state.filters.meanpMax = f.meanpMax || '';
+    state.filters.meanritMin = f.meanritMin || '';
+    state.filters.meanritMax = f.meanritMax || '';
+  } catch (e) {
+    console.warn('Failed to load filters', e);
+  }
 }
 
 // Sync sticky offsets with the actual header height (Bootstrap navbar)
@@ -66,9 +109,9 @@ function buildQuery() {
   for (const v of state.filters.itemTypes) p.append('item_type', v);
   for (const v of state.filters.levels) p.append('level', v);
   for (const v of state.filters.targetAreas) p.append('target_area', v);
+  for (const v of state.filters.contentAreas) p.append('content_area', v);
   for (const v of state.filters.nutaSkillLevels) p.append('nuta_skill_level', v);
   for (const v of state.filters.sources) p.append('source', v);
-  if (state.filters.contentArea) p.set('content_area', state.filters.contentArea);
 
   if (state.filters.meanpMin) p.set('meanp_min', state.filters.meanpMin);
   if (state.filters.meanpMax) p.set('meanp_max', state.filters.meanpMax);
@@ -205,8 +248,10 @@ async function buildFilters() {
   for (const t of data.item_types) {
     const id = `type-${t}`;
     const {root: r, input} = checkbox(id, t);
+    input.checked = state.filters.itemTypes.has(t);
     input.addEventListener('change', () => {
       if (input.checked) state.filters.itemTypes.add(t); else state.filters.itemTypes.delete(t);
+      saveFiltersToStorage();
       state.page = 1; loadItems();
     });
     secType.appendChild(r);
@@ -218,31 +263,35 @@ async function buildFilters() {
   for (const lv of data.hierarchical_levels) {
     const id = `lv-${lv}`;
     const {root: r, input} = checkbox(id, lv);
+    input.checked = state.filters.levels.has(lv);
     input.addEventListener('change', () => {
       if (input.checked) state.filters.levels.add(lv); else state.filters.levels.delete(lv);
+      saveFiltersToStorage();
       state.page = 1; loadItems();
     });
     secLvl.appendChild(r);
   }
   root.appendChild(secLvl);
 
-  // Content area (single select chips)
+  // Content areas (multi select chips like checkboxes)
   const secCA = filterSection('Content Area');
   const caWrap = document.createElement('div');
   caWrap.className = 'chips';
   for (const ca of data.content_areas) {
-    const b = chip(ca.label);
+    const isActive = state.filters.contentAreas.has(ca.key);
+    const b = chip(ca.label, isActive);
     b.addEventListener('click', () => {
-      if (state.filters.contentArea === ca.key) {
-        state.filters.contentArea = '';
+      const willSelect = !b.classList.contains('btn-primary');
+      if (willSelect) {
+        b.classList.remove('btn-outline-primary');
+        b.classList.add('btn-primary');
+        state.filters.contentAreas.add(ca.key);
+      } else {
         b.classList.remove('btn-primary');
         b.classList.add('btn-outline-primary');
-      } else {
-        state.filters.contentArea = ca.key;
-        $$('.chips .chip', secCA).forEach(x => { x.classList.remove('btn-primary'); x.classList.add('btn-outline-primary'); });
-        b.classList.add('btn-primary');
-        b.classList.remove('btn-outline-primary');
+        state.filters.contentAreas.delete(ca.key);
       }
+      saveFiltersToStorage();
       state.page = 1; loadItems();
     });
     caWrap.appendChild(b);
@@ -255,7 +304,8 @@ async function buildFilters() {
   const taWrap = document.createElement('div');
   taWrap.className = 'chips';
   for (const t of data.target_areas) {
-    const b = chip(t.label);
+    const isActive = state.filters.targetAreas.has(t.key);
+    const b = chip(t.label, isActive);
     b.addEventListener('click', () => {
       const willSelect = !b.classList.contains('btn-primary');
       if (willSelect) {
@@ -267,6 +317,7 @@ async function buildFilters() {
         b.classList.add('btn-outline-primary');
         state.filters.targetAreas.delete(t.key);
       }
+      saveFiltersToStorage();
       state.page = 1; loadItems();
     });
     taWrap.appendChild(b);
@@ -279,8 +330,10 @@ async function buildFilters() {
   for (const n of data.nuta_skill_levels) {
     const id = `nu-${n}`;
     const {root: r, input} = checkbox(id, n);
+    input.checked = state.filters.nutaSkillLevels.has(n);
     input.addEventListener('change', () => {
       if (input.checked) state.filters.nutaSkillLevels.add(n); else state.filters.nutaSkillLevels.delete(n);
+      saveFiltersToStorage();
       state.page = 1; loadItems();
     });
     secNu.appendChild(r);
@@ -292,8 +345,10 @@ async function buildFilters() {
   for (const s of data.sources) {
     const id = `src-${s}`;
     const {root: r, input} = checkbox(id, s);
+    input.checked = state.filters.sources.has(s);
     input.addEventListener('change', () => {
       if (input.checked) state.filters.sources.add(s); else state.filters.sources.delete(s);
+      saveFiltersToStorage();
       state.page = 1; loadItems();
     });
     secSrc.appendChild(r);
@@ -313,10 +368,16 @@ async function buildFilters() {
   secNum.appendChild(numGrid);
   root.appendChild(secNum);
 
-  $('#meanpMin').addEventListener('input', debounce((e) => { state.filters.meanpMin = e.target.value; state.page = 1; loadItems(); }, 400));
-  $('#meanpMax').addEventListener('input', debounce((e) => { state.filters.meanpMax = e.target.value; state.page = 1; loadItems(); }, 400));
-  $('#meanritMin').addEventListener('input', debounce((e) => { state.filters.meanritMin = e.target.value; state.page = 1; loadItems(); }, 400));
-  $('#meanritMax').addEventListener('input', debounce((e) => { state.filters.meanritMax = e.target.value; state.page = 1; loadItems(); }, 400));
+  $('#meanpMin').addEventListener('input', debounce((e) => { state.filters.meanpMin = e.target.value; saveFiltersToStorage(); state.page = 1; loadItems(); }, 400));
+  $('#meanpMax').addEventListener('input', debounce((e) => { state.filters.meanpMax = e.target.value; saveFiltersToStorage(); state.page = 1; loadItems(); }, 400));
+  $('#meanritMin').addEventListener('input', debounce((e) => { state.filters.meanritMin = e.target.value; saveFiltersToStorage(); state.page = 1; loadItems(); }, 400));
+  $('#meanritMax').addEventListener('input', debounce((e) => { state.filters.meanritMax = e.target.value; saveFiltersToStorage(); state.page = 1; loadItems(); }, 400));
+
+  // Initialize numeric inputs from saved state
+  if (state.filters.meanpMin !== '') $('#meanpMin').value = state.filters.meanpMin;
+  if (state.filters.meanpMax !== '') $('#meanpMax').value = state.filters.meanpMax;
+  if (state.filters.meanritMin !== '') $('#meanritMin').value = state.filters.meanritMin;
+  if (state.filters.meanritMax !== '') $('#meanritMax').value = state.filters.meanritMax;
 }
 
 function setupSort() {
@@ -364,7 +425,8 @@ function setupToolbar() {
   }
 
   $('#clearFilters').addEventListener('click', () => {
-    state.filters = { itemTypes: new Set(), levels: new Set(), contentArea: '', targetAreas: new Set(), nutaSkillLevels: new Set(), sources: new Set(), meanpMin: '', meanpMax: '', meanritMin: '', meanritMax: '' };
+    state.filters = { itemTypes: new Set(), levels: new Set(), contentAreas: new Set(), targetAreas: new Set(), nutaSkillLevels: new Set(), sources: new Set(), meanpMin: '', meanpMax: '', meanritMin: '', meanritMax: '' };
+    try { localStorage.removeItem(FILTERS_STORAGE_KEY); } catch (_) {}
     buildFilters();
     state.page = 1; loadItems();
   });
@@ -511,6 +573,8 @@ function initEvents() {
 async function init() {
   setupStickyOffsets();
   initEvents();
+  // Restore saved filter selections so chips remain highlighted after reload
+  loadFiltersFromStorage();
   // Ensure filters visible by default on desktop widths
   const appContent = document.querySelector('.app-content');
   if (window.innerWidth > 1000) {
