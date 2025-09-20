@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Item Bank Explorer</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo">📚</div>
+      <div class="title">
+        <h1>Item Bank Explorer</h1>
+        <p class="subtitle">Browse and filter 464 assessment items</p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input id="searchInput" type="search" placeholder="Search label, name, source or contents..." />
+      </div>
+
+      <button id="toggleFilters" class="btn secondary" aria-expanded="true">Filters</button>
+      <button id="themeToggle" class="btn icon" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+    </div>
+  </header>
+
+  <div class="app-content">
+    <aside id="filtersPanel" class="filters open">
+      <div class="filters-header">
+        <h2>Filters</h2>
+        <button id="clearFilters" class="btn link">Clear all</button>
+      </div>
+
+      <div id="filtersContainer" class="filters-body">
+        <!-- Dynamic filters will be injected here by app.js -->
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="toolbar">
+        <div class="pill">Total <span id="totalCount">0</span> items</div>
+        <div class="spacer"></div>
+        <label class="pagesize">Rows per page:
+          <select id="pageSize">
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="itemsTable">
+          <thead>
+            <tr>
+              <th data-sort="id">ID</th>
+              <th data-sort="label">Label</th>
+              <th data-sort="type">Type</th>
+              <th data-sort="level">Level</th>
+              <th data-sort="meanp">Difficulty (meanp)</th>
+              <th data-sort="a_irt">Discrimination (a_irt)</th>
+              <th>Content Area</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Rows injected here -->
+          </tbody>
+        </table>
+        <div id="tableSkeleton" class="skeleton-list" hidden>
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row"></div>
+        </div>
+      </div>
+
+      <div class="pagination">
+        <button class="btn" id="prevPage">Prev</button>
+        <div class="pages" id="pages"></div>
+        <button class="btn" id="nextPage">Next</button>
+      </div>
+    </main>
+  </div>
+
+  <div id="detailsDrawer" class="drawer" aria-hidden="true">
+    <div class="drawer-content">
+      <button id="closeDrawer" class="btn icon close">✕</button>
+      <div id="detailsRoot" class="details-root">
+        <!-- Details injected here -->
+      </div>
+    </div>
+    <div class="drawer-backdrop"></div>
+  </div>
+
+  <footer class="app-footer">
+    <div>Powered by FastAPI • Beautiful, responsive UI</div>
+  </footer>
+
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>
