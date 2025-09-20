@@ -74,7 +74,6 @@ SAFE_SORT_COLUMNS = {
     "source": "i.source",
     "type": "it.item_type_all",
     "level": "ih.hierarchical_level_all",
-    "meanp": "idl.meanp_all_classical",
     "meanp_all": "idl.meanp_all_classical",
     "a_irt": "ids.a_irt",
     "meanrit_classical": "ids.meanrit_classical",
