@@ -2,7 +2,7 @@ import os
 import sqlite3
 from typing import List, Optional, Tuple, Dict, Any
 
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Response
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -436,6 +436,15 @@ def serve_index():
     return JSONResponse(status_code=404, content={"detail": "Index file not found"})
 
 
+# Serve favicon (avoids noisy 404s and works if a favicon exists in /static)
+@app.get("/favicon.ico")
+def favicon():
+    icon_path = os.path.join(STATIC_DIR, "favicon.ico")
+    if os.path.exists(icon_path):
+        return FileResponse(icon_path)
+    return Response(status_code=204)
+
+
 # Optional: health check
 @app.get("/api/health")
 def health():
@@ -445,3 +454,8 @@ def health():
         return {"status": "ok"}
     except Exception as e:
         return JSONResponse(status_code=500, content={"status": "error", "detail": str(e)})
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
